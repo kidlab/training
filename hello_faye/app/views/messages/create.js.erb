@@ -1,0 +1,4 @@
+<% broadcast "/messages/new" do %>
+  <%= @message.content %>
+<% end %>
+$("#new_message")[0].reset();

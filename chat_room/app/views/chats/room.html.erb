@@ -1,0 +1,66 @@
+<div class="chat_container">
+  <div id="chat_room">
+    <p class="alert"> Welcome to the chat room <%= session[:username] %>! </p>
+    <p class="alert"> Type @username to send private message to the username.</p>
+  </div>
+ 
+  <form id="new_message_form">
+    <input type="text" id="message" name="message">
+    <input type="submit" value="Send">
+  </form>
+</div>
+
+<%= javascript_include_tag "http://192.168.0.66:9292/faye.js" %>
+
+<script>
+  $(function() {
+    // Create a new client to connect to Faye
+    var client = new Faye.Client('http://192.168.0.66:9292/faye');
+    var public_channel = "/messages/public";
+    var username = '<%= session[:username] %>';
+
+    // A helper to format the username.
+    function format_username(msg_username) {
+      if(msg_username == username)
+          msg_username = msg_username + " (me)";
+      return msg_username;
+    }
+
+    // Handle form submissions and post messages to faye
+    $('#new_message_form').submit(function() {
+       // Is it a private message?
+      if (matches = $('#message').val().match(/([^@\s]+) (.+)/)) {
+        client.publish('/messages/private/' + matches[1], {
+          username: username,
+          msg: matches[2]
+        });
+
+        // Add to the chat log as the current user cannot receive the message
+        $('<p></p>').html(format_username(username) + ": " + $('#message').val()).appendTo('#chat_room');
+      }
+      else {
+        // It's a public message
+        client.publish(public_channel, {
+          username: username,
+          msg: $('#message').val()
+        });
+      }
+ 
+      // Clear the message box
+      $('#message').val('');
+ 
+      // Don't actually submit the form, otherwise the page will refresh.
+      return false;
+    });
+
+    // Subscribe to the public channel
+    var public_subscription = client.subscribe(public_channel, function(data) {
+      $('<p></p>').html(format_username(data.username) + ": " + data.msg).appendTo('#chat_room');
+    });
+
+    // Our own private channel
+    var private_subscription = client.subscribe('/messages/private/' + username, function(data) {
+      $('<p></p>').addClass('private').html(format_username(data.username) + ": " + data.msg).appendTo('#chat_room');
+    });
+  });
+</script>

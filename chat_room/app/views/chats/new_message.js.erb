@@ -1,0 +1,7 @@
+// Add to the chat log as the current user cannot receive the message
+$('<p></p>').html(format_username('<%= session[:username] %>') + ": " + $('#message').val()).appendTo('#chat_room');
+
+// Clear message input
+$('#message').val('');
+
+<% publish_to @channel, @message %>

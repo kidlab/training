@@ -1,0 +1,9 @@
+development:
+  server: "http://192.168.0.66:9292/faye"
+  secret_token: "secret"
+test:
+  server: "http://192.168.0.66:9292/faye"
+  secret_token: "secret"
+production:
+  server: "http://192.168.0.66:9292/faye"
+  secret_token: "secret"
